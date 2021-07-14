@@ -1,11 +1,12 @@
-import mongose from "mongoose";
+import mongoose from "mongoose";
 
-mongose.connect("mongodb://127.0.0.1:27017/wetube", {
+
+mongoose.connect("mongodb://127.0.0.1:27017/wetube", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
 
-const db = mongose.connection;
+const db = mongoose.connection;
 
 const handleError = (error) => console.log("✖ DB Error", error);
 const handleOpen = () => console.log("✅ Connected to DB");
