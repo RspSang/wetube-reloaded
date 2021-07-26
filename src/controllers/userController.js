@@ -7,14 +7,14 @@ export const postJoin = async (req, res) => {
   const { name, username, email, password, password2, location } = req.body;
   const pageTitle = "Join";
   if (password !== password2) {
-    return res.satatus(400).render("join", {
+    return res.status(400).render("join", {
       pageTitle,
       errorMessage: "Password confirmation does not match.",
     });
   }
   const exists = await User.exists({ $or: [{ username }, { email }] });
   if (exists) {
-    return res.satatus(400).render("join", {
+    return res.status(400).render("join", {
       pageTitle,
       errorMessage: "This username/email is already taken.",
     });
@@ -23,7 +23,7 @@ export const postJoin = async (req, res) => {
     await User.create({ name, username, email, password, location });
     return res.redirect("/login");
   } catch (error) {
-    return res.satatus(400).render("join", {
+    return res.status(400).render("join", {
       pageTitle,
       errorMessage: error._message,
     });
@@ -46,6 +46,8 @@ export const postLogin = async (req, res) => {
       errorMessage: "Worng password",
     });
   }
+  req.session.loggedIn = true;
+  req.session.user = user;
   return res.redirect("/");
 };
 export const getLogin = (req, res) =>
