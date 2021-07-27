@@ -1,6 +1,7 @@
 import express from "express";
 import morgan from "morgan";
 import session from "express-session";
+import Mongostore from "connect-mongo";
 import rootRouter from "./routers/rootRouter";
 import userRouter from "./routers/userRouter";
 import videoRouter from "./routers/videoRouter";
@@ -10,7 +11,17 @@ const app = express();
 const logger = morgan("dev");
 app.use(logger);
 
-app.use(session({ secret: "Hello!", resave: true, saveUninitialized: true }));
+app.use(
+  session({
+    secret: process.env.COOKIE_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    store: Mongostore.create({ mongoUrl: process.env.DB_URL }),
+    cookie: {
+      maxAge: 20000,
+    },
+  })
+);
 
 app.use(localsMiddleware);
 app.set("view engine", "pug");
