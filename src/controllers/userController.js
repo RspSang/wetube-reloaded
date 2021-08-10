@@ -1,5 +1,4 @@
 import User from "../models/User";
-import Video from "../models/Video";
 import fetch from "node-fetch";
 import bcrypt from "bcrypt";
 
@@ -111,6 +110,7 @@ export const finishGithubLogin = async (req, res) => {
       (email) => email.primary === true && email.verified === true
     );
     if (!emailObj) {
+      // set notification
       return res.redirect("/login");
     }
     let user = await User.findOne({ email: emailObj.email });
@@ -137,38 +137,18 @@ export const logout = (req, res) => {
   req.session.destroy();
   return res.redirect("/");
 };
-
 export const getEdit = (req, res) => {
-  res.render("edit-profile", { pageTitle: "Edit Profile" });
+  return res.render("edit-profile", { pageTitle: "Edit Profile" });
 };
-
 export const postEdit = async (req, res) => {
   const {
     session: {
-      user: { _id, avatarUrl, email: sessionEmail, username: sessionUsername },
+      user: { _id, avatarUrl },
     },
     body: { name, email, username, location },
     file,
   } = req;
-
-  let searchParam = [];
-  if (sessionEmail !== email) {
-    searchParam.push({ email });
-  }
-  if (sessionUsername !== username) {
-    searchParam.push({ username });
-  }
-  if (searchParam.length > 0) {
-    const foundUser = await User.findOne({ $or: searchParam });
-    if (foundUser && foundUser._id.toString() !== _id) {
-      return res.status(400).render("edit-profile", {
-        pageTitle: "Edit Profile",
-        errorMessage: "This username/email is already taken.",
-      });
-    }
-  }
-
-  const updateUser = await User.findByIdAndUpdate(
+  const updatedUser = await User.findByIdAndUpdate(
     _id,
     {
       avatarUrl: file ? file.path : avatarUrl,
@@ -179,7 +159,7 @@ export const postEdit = async (req, res) => {
     },
     { new: true }
   );
-  req.session.user = updateUser;
+  req.session.user = updatedUser;
   return res.redirect("/users/edit");
 };
 
@@ -217,9 +197,15 @@ export const postChangePassword = async (req, res) => {
 
 export const see = async (req, res) => {
   const { id } = req.params;
-  const user = await User.findById(id).populate("videos");
+  const user = await User.findById(id).populate({
+    path: "videos",
+    populate: {
+      path: "owner",
+      model: "User",
+    },
+  });
   if (!user) {
-    return res.status(404).render("404", { pageTitle: "User not found" });
+    return res.status(404).render("404", { pageTitle: "User not found." });
   }
   return res.render("users/profile", {
     pageTitle: user.name,
