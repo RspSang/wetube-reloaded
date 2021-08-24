@@ -95,12 +95,16 @@ export const deleteVideo = async (req, res) => {
     user: { _id },
   } = req.session;
   const video = await Video.findById(id);
+  const user = await User.findById(_id);
   if (!video) {
     return res.status(404).render("404", { pageTitle: "Video not found." });
   }
   if (String(video.owner) !== String(_id)) {
+    req.flash("info", "Not authorized");
     return res.status(403).redirect("/");
   }
+  user.videos.splice(user.videos.indexOf(id), 1);
+  user.save();
   await Video.findByIdAndDelete(id);
   return res.redirect("/");
 };
@@ -135,7 +139,7 @@ export const createComment = async (req, res) => {
     body: { text },
     params: { id },
   } = req;
-
+  const commentUser = await User.findById(user._id);
   const video = await Video.findById(id).populate("owner").populate("comments");
   if (!video) {
     return res.sendStatus(404);
@@ -147,6 +151,30 @@ export const createComment = async (req, res) => {
   });
   video.comments.push(comment._id);
   video.save();
-
+  commentUser.comments.push(comment._id);
+  commentUser.save();
   return res.status(201).json({ newCommentId: comment._id });
+};
+
+export const deleteComment = async (req, res) => {
+  const { id } = req.params;
+
+  const comment = await Comment.findById(id)
+    .populate("video")
+    .populate("owner");
+  if (!comment) {
+    return res.sendStatus(404);
+  }
+
+  const videoId = comment.video._id;
+  const userId = comment.owner._id;
+  const video = await Video.findById(videoId);
+  const commentUser = await User.findById(userId);
+
+  commentUser.comments.splice(commentUser.comments.indexOf(id), 1);
+  video.comments.splice(video.comments.indexOf(id), 1);
+  commentUser.save();
+  video.save();
+  Comment.findByIdAndRemove(id);
+  return res.sendStatus(200);
 };
