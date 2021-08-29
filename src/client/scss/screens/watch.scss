@@ -18,6 +18,39 @@
     }
   }
 }
+
+.video__comment-form {
+  display: flex;
+  flex-direction: row;
+  textarea {
+    color: #666;
+    font-size: 14px;
+    -moz-border-radius: 8px;
+    -webkit-border-radius: 8px;
+    height: 45px;
+    width: 350px;
+    border: #999 3px solid;
+    padding: 10px;
+    &:focus {
+      color: #000;
+      outline: none;
+      border: #35a5e5 3px solid;
+    }
+  }
+  button {
+    cursor: pointer;
+    border-radius: 5px;
+    margin-left: 10px;
+    font-size: 22px;
+    text-decoration: none;
+    color: #fff;
+    position: relative;
+    display: inline-block;
+    background-color: #55acee;
+    box-shadow: 0px 5px 0px 0px #3c93d5;
+  }
+}
+
 .video__comments {
   display: flex;
   flex-direction: column;
